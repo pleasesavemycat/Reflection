@@ -27,23 +27,56 @@ import XCTest
 final class ReflectionTests: XCTestCase {
     /// Validates that instantiating `ReflectionInstantiableSwiftClass` in the correct bundle succeeds.
     func testSwiftClassInBundleSuccess() throws {
-        let bundle = Bundle(for: ReflectionInstantiableSwiftClass.self)
+        let bundle = Bundle(for: type(of: self))
+        XCTAssertNotNil(bundle, "Bundle for 'ReflectionInstantiableSwiftClass' is nil")
+        
+        guard let bundleIdentifier = bundle.bundleIdentifier else {
+            XCTFail("Bundle for 'ReflectionInstantiableSwiftClass' has no bundle identifier")
+            return
+        }
+        
         let instance = Reflection.create("ReflectionInstantiableSwiftClass", bundle: bundle)
-        XCTAssertNotNil(instance)
+        XCTAssertNotNil(instance, "No instance created for 'ReflectionInstantiableSwiftClass' in bundle '\(bundleIdentifier)'")
     }
     
     /// Validates that instantiating `ReflectionInstantiableSwiftClass` in the main bundle fails
     /// because `ReflectionInstantiableSwiftClass` belongs to `ReflectionTests`.
     func testSwiftClassInMainBundleFails() throws {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+            XCTFail("Bundle.main has no bundle identifier")
+            return
+        }
+        
         let instance = Reflection.create("ReflectionInstantiableSwiftClass")
-        XCTAssertNil(instance)
+        XCTAssertNil(instance, "Unexpectedly created instance 'ReflectionInstantiableSwiftClass' in bundle  '\(bundleIdentifier)'")
     }
     
     /// Validates that instantiating `SwiftClass` in the correct bundle, but does not conform to `ReflectionInstantiable`
     /// fails to create an instance.
     func testNonConformingSwiftClassInBundleFails() throws {
-        let bundle = Bundle(for: SwiftClass.self)
+        let bundle = Bundle(for: type(of: self))
+        XCTAssertNotNil(bundle, "Bundle for 'SwiftClass' is nil")
+        
+        guard let bundleIdentifier = bundle.bundleIdentifier else {
+            XCTFail("Bundle for 'SwiftClass' has no bundle identifier")
+            return
+        }
+        
         let instance = Reflection.create("SwiftClass", bundle: bundle)
-        XCTAssertNil(instance)
+        XCTAssertNil(instance, "Unexpectedly created instance 'SwiftClass' in bundle  '\(bundleIdentifier)'")
     }
+}
+
+// MARK: - Test Classes
+
+/// Swift test class conforming to `ReflectionInstantiable`
+class ReflectionInstantiableSwiftClass: ReflectionInstantiable {
+    required init() {
+        // Nothing to do
+    }
+}
+
+/// Swift test class that does not conform to `ReflectionInstantiable`
+class SwiftClass {
+    // Intentionally empty
 }
